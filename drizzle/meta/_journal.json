@@ -15,6 +15,13 @@
       "when": 1770464695086,
       "tag": "0001_jazzy_randall",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770487524430,
+      "tag": "0002_good_hardball",
+      "breakpoints": true
     }
   ]
 }
