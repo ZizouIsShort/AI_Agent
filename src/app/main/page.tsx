@@ -1,12 +1,31 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function MainPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+
+  const [query, setQuery] = useState("");
+
+  async function sendQuery() {
+    const response = await fetch("/api/tools", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: query,
+      }),
+    });
+    if (response.ok) {
+      console.log(response.json());
+    } else {
+      console.log("DIDNT WORK MONKEY");
+    } // Implement query sending logic here
+  }
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -30,7 +49,7 @@ export default function MainPage() {
         <div className="mx-auto flex min-h-[70vh] max-w-[820px] flex-col justify-center py-20">
           <div className="mb-12 transition-opacity duration-1000">
             <h1 className="text-5xl font-medium tracking-tight bg-gradient-to-r from-[#4285f4] via-[#9b72cb] to-[#d96570] bg-clip-text text-transparent pb-3">
-              Hello, {user.emailAddresses[0].emailAddress}
+              Hello, {user.firstName}
             </h1>
             <h2 className="text-4xl font-medium text-[#444746]">
               How can I help you today?
@@ -49,6 +68,7 @@ export default function MainPage() {
               type="text"
               placeholder="Enter a prompt here"
               className="w-full bg-transparent text-[17px] text-[#e3e3e3] outline-none placeholder:text-[#8e918f]"
+              onChange={(e) => setQuery(e.target.value)}
             />
 
             <div className="flex items-center gap-2 pl-2">
@@ -72,7 +92,10 @@ export default function MainPage() {
               </button>
 
               {/* Submit Button */}
-              <button className="p-2 text-[#e3e3e3] hover:text-white transition-colors">
+              <button
+                className="p-2 text-[#e3e3e3] hover:text-white transition-colors"
+                onClick={sendQuery}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -93,7 +116,7 @@ export default function MainPage() {
           </div>
 
           <p className="mt-4 text-center text-[11px] text-[#8e918f] opacity-80">
-            Ziyan's AI agent (inshallah it works)
+            Ziyan ka AI agent (inshallah it works)
           </p>
         </div>
       </footer>
