@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { Pinecone } from "@pinecone-database/pinecone";
 
-const ai = new GoogleGenAI({});
+const ai = new GoogleGenAI({
+  apiKey: process.env.GOOGLE_API_KEY!,
+});
+const pc = new Pinecone({
+  apiKey: process.env.PINECONE!,
+});
+const index = pc.index("killme");
 
 export async function POST(request: Request) {
   const { query } = await request.json();
@@ -56,17 +63,57 @@ export async function POST(request: Request) {
         contents: query,
       });
 
-      if (
-        !embeddingResponse.embeddings ||
-        embeddingResponse.embeddings.length === 0
-      ) {
-        throw new Error("No embeddings returned");
+      const embeddedQuery = embeddingResponse.embeddings?.[0]?.values;
+
+      if (!embeddedQuery) {
+        throw new Error("Embedding values missing");
+      }
+      const pineResult = await index.query({
+        vector: embeddedQuery,
+        topK: 5,
+        namespace: "rag-data",
+        includeMetadata: true,
+      });
+
+      const matches = pineResult.matches;
+
+      if (!matches || matches.length === 0) {
+        return NextResponse.json({
+          message: "No relevant chunks found",
+        });
       }
 
-      const embeddedQuery = embeddingResponse.embeddings[0].values;
-      console.log(embeddedQuery);
+      const chunks = matches
+        .map((match) => match.metadata?.text)
+        .filter((text): text is string => Boolean(text));
 
-      return NextResponse.json({ message: "Tool is being used" });
+      const toolResponse = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: `
+        You are an AI assistant answering questions using the provided context.
+
+        Context:
+        ${chunks.map((chunk, i) => `(${i + 1}) ${chunk}`).join("\n\n")}
+
+        User question:
+        "${query}"
+
+        Instructions:
+        - Answer the question using ONLY the information in the context above.
+        - If the context does not contain enough information to answer the question, say:
+          "The provided documents do not contain enough information to answer this question."
+        - Do not use outside knowledge.
+        - Be clear, concise, and accurate.
+
+        Answer:
+        `,
+      });
+      const answer = toolResponse.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!answer) {
+        throw new Error("No answer returned by model");
+      }
+      console.log(answer);
     }
     return NextResponse.json({
       message: "Query received but tool isnt being used",
