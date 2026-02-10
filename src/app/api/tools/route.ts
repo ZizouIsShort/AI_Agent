@@ -51,6 +51,21 @@ export async function POST(request: Request) {
     console.log(decision);
     if (decision === "YES") {
       console.log("USE THIS TOOL");
+      const embeddingResponse = await ai.models.embedContent({
+        model: "gemini-embedding-001",
+        contents: query,
+      });
+
+      if (
+        !embeddingResponse.embeddings ||
+        embeddingResponse.embeddings.length === 0
+      ) {
+        throw new Error("No embeddings returned");
+      }
+
+      const embeddedQuery = embeddingResponse.embeddings[0].values;
+      console.log(embeddedQuery);
+
       return NextResponse.json({ message: "Tool is being used" });
     }
     return NextResponse.json({
