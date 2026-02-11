@@ -22,6 +22,13 @@
       "when": 1770487524430,
       "tag": "0002_good_hardball",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1770837081216,
+      "tag": "0003_milky_greymalkin",
+      "breakpoints": true
     }
   ]
 }
