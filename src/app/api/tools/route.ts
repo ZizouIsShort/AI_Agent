@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     subnetting to demonstrate inter-network communication.
     `;
 
-    const response = await ai.models.generateContent({
+    const response1 = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: `You are an AI agent responsible for deciding whether a user query requires
         consulting a specific tool.
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       `,
     });
     const decision =
-      response.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      response1.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
     console.log(decision);
     if (decision === "YES") {
       console.log("USE THIS TOOL");
@@ -114,6 +114,13 @@ export async function POST(request: Request) {
         throw new Error("No answer returned by model");
       }
       console.log(answer);
+      console.log("That was the answer\n");
+      console.log(chunks);
+      return NextResponse.json({
+        message: "Here is the LLM Response",
+        llmAnswer: answer,
+        source: "CS361_Computer_Networks_Practicals.pdf",
+      });
     }
     return NextResponse.json({
       message: "Query received but tool isnt being used",
