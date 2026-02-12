@@ -15,7 +15,7 @@ export default function MainPage() {
   const router = useRouter();
 
   const [query, setQuery] = useState("");
-  //const [convo_id, setConvoId] = useState("");
+  const [convo_id, setConvoId] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -44,7 +44,36 @@ export default function MainPage() {
 
   if (!user) return null;
 
-  async function sendQuery() {
+  async function send_convo() {
+    if (!query.trim()) return;
+
+    const currentQuery = query;
+    setQuery("");
+
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: currentQuery,
+        conversationId: convo_id,
+        user_id: user?.id,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      if (!convo_id && data.conversationId) {
+        setConvoId(data.conversationId);
+      }
+
+      console.log("Assistant:", data.llmAnswer);
+    } else {
+      console.log("Error");
+    }
+  }
+
+  /*async function sendQuery() {
     if (!query.trim() || loading) return;
 
     const userMessage: Message = {
@@ -89,7 +118,7 @@ export default function MainPage() {
       ]);
     }
     setLoading(false);
-  }
+  }*/
 
   return (
     <div className="flex h-screen w-full bg-[#131314] text-[#e3e3e3] selection:bg-[#3d4451]">
@@ -204,12 +233,12 @@ export default function MainPage() {
                 className="flex-1 bg-transparent py-3 text-[16px] text-[#e3e3e3] outline-none placeholder:text-[#8e918f]"
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") sendQuery();
+                  if (e.key === "Enter") send_convo();
                 }}
               />
 
               <button
-                onClick={sendQuery}
+                onClick={send_convo}
                 disabled={loading || !query.trim()}
                 className="flex h-10 w-10 items-center justify-center rounded-full text-[#e3e3e3] transition-all hover:bg-[#37393b] disabled:opacity-20"
               >
