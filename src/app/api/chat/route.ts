@@ -110,7 +110,7 @@ export async function POST(request: Request) {
           "${query}"
 
           Instructions:
-          - Answer the question using ONLY the information in the context above.
+          - Answer the question using ONLY the information in the context above in less than 10,000 words.
           - If the context does not contain enough information to answer the question, say:
             "The provided documents do not contain enough information to answer this question."
           - Do not use outside knowledge.
@@ -131,15 +131,17 @@ export async function POST(request: Request) {
           sql`INSERT INTO ${messages} (conversation_id, role, content, created_at) VALUES (${convo_id}, ${role_user}, ${query}, ${now}) RETURNING *`,
         );
         console.log(first_message_user);
-        const role_llm = "llm";
+        const role_llm = "assisstant";
         const first_message_llm = await db.execute(
-          sql`INSERT INTO ${messages} (conversation_id ,role, content, created_at) VALUES (${convo_id}, ${role_llm}, ${query}, ${now}) RETURNING *`,
+          sql`INSERT INTO ${messages} (conversation_id ,role, content, created_at) VALUES (${convo_id}, ${role_llm}, ${answer}, ${now}) RETURNING *`,
         );
         console.log(first_message_llm);
         return NextResponse.json({
           message: "first_convo added and tool used",
+          convor_id: convo_id,
+          response: toolResponse,
+          title: title,
         });
-      } else {
       }
       return NextResponse.json({
         message: "query received",

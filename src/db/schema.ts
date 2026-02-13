@@ -9,16 +9,16 @@ export const usersTable = pgTable("users", {
 
 export const conversations = pgTable("conversations", {
   id: uuid("id").defaultRandom().primaryKey(),
-  user_id: varchar("user_id", { length: 255 }).references(() => usersTable.id),
-  title: varchar("title", { length: 255 }).notNull(),
-  created_at: varchar("created_at", { length: 255 }).notNull(),
-  updated_at: varchar("updated_at", { length: 255 }).notNull(),
+  user_id: varchar("user_id", { length: 1000 }).references(() => usersTable.id),
+  title: varchar("title", { length: 1000 }).notNull(),
+  created_at: varchar("created_at", { length: 1000 }).notNull(),
+  updated_at: varchar("updated_at", { length: 1000 }).notNull(),
 });
 
 export const messages = pgTable("messages", {
   id: uuid("id").defaultRandom().primaryKey(),
   conversation_id: uuid("conversation_id").references(() => conversations.id),
-  role: varchar("role", { length: 40 }).notNull(),
-  content: varchar("content", { length: 10000 }).notNull(),
-  created_at: varchar("created_at", { length: 255 }).notNull(),
+  role: varchar("role", { length: 1000 }).notNull(),
+  content: varchar("content", { length: 100000 }).notNull(),
+  created_at: varchar("created_at", { length: 1000 }).notNull(),
 });
