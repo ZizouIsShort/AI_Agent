@@ -32,7 +32,9 @@ export async function POST(request: Request) {
       const new_convo = await db.execute(
         sql`INSERT INTO ${conversations} (user_id, title, created_at, updated_at) VALUES (${user_id}, ${title}, ${now}, ${now}) RETURNING *`,
       );
+      const convo_id = new_convo[0].id;
       console.log(new_convo);
+      console.log(convo_id);
       const llm_response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: `You are an AI agent responsible for deciding whether a user query requires
@@ -126,12 +128,12 @@ export async function POST(request: Request) {
         console.log("That was the answer\n");
         const role_user = "user";
         const first_message_user = await db.execute(
-          sql`INSERT INTO ${messages} (role, content, created_at, updated_at) VALUES (${role_user}, ${query}, ${now}, ${now}) RETURNING *`,
+          sql`INSERT INTO ${messages} (conversation_id, role, content, created_at) VALUES (${convo_id}, ${role_user}, ${query}, ${now}) RETURNING *`,
         );
         console.log(first_message_user);
         const role_llm = "llm";
         const first_message_llm = await db.execute(
-          sql`INSERT INTO ${messages} (role, content, created_at, updated_at) VALUES (${role_llm}, ${query}, ${now}, ${now}) RETURNING *`,
+          sql`INSERT INTO ${messages} (conversation_id ,role, content, created_at) VALUES (${convo_id}, ${role_llm}, ${query}, ${now}) RETURNING *`,
         );
         console.log(first_message_llm);
         return NextResponse.json({
