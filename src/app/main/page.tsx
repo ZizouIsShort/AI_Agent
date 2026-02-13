@@ -14,7 +14,8 @@ export default function MainPage() {
   const router = useRouter();
 
   const [query, setQuery] = useState("");
-  const [convo_id, setConvoId] = useState<string | null>(null);
+  const [convo_id, setConvoId] = useState<string>("");
+  const [conversationTitle, setConversationTitle] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -43,43 +44,51 @@ export default function MainPage() {
 
     const currentQuery = query;
 
-    // push user message immediately
     setMessages((prev) => [...prev, { role: "user", content: currentQuery }]);
 
     setQuery("");
     setLoading(true);
 
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: currentQuery,
-        conversationId: convo_id ?? "",
-        user_id: user?.id,
-      }),
-    });
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: currentQuery,
+          conversationId: convo_id,
+          user_id: user?.id,
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (response.ok) {
-      // set new conversation id if first message
-      if (!convo_id && data.convor_id) {
-        setConvoId(data.convor_id);
+      if (response.ok) {
+        // First message → set conversation id
+        if (!convo_id && data.convor_id) {
+          setConvoId(data.convor_id);
+        }
+
+        // First message → set title
+        if (!conversationTitle && data.title) {
+          setConversationTitle(data.title);
+        }
+
+        const assistantText = data.response ?? "No response";
+
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: assistantText },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "Something went wrong." },
+        ]);
       }
-
-      // extract actual assistant text
-      const assistantText =
-        data.response?.candidates?.[0]?.content?.parts?.[0]?.text ??
-        "No response";
-
+    } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: assistantText },
-      ]);
-    } else {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Something went wrong." },
+        { role: "assistant", content: "Server error. Try again." },
       ]);
     }
 
@@ -87,7 +96,8 @@ export default function MainPage() {
   }
 
   function newChat() {
-    setConvoId(null);
+    setConvoId("");
+    setConversationTitle("");
     setMessages([]);
   }
 
@@ -109,7 +119,18 @@ export default function MainPage() {
       <div className="flex flex-1 flex-col">
         <main className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="mx-auto max-w-3xl px-4 py-12 md:px-6">
-            {messages.length === 0 && (
+            {/* Title (only show if exists) */}
+            {conversationTitle && (
+              <div className="mb-8 text-center">
+                <h1 className="text-2xl font-semibold text-[#e3e3e3]">
+                  {conversationTitle}
+                </h1>
+                <div className="mt-2 h-[1px] bg-[#1e1f20]" />
+              </div>
+            )}
+
+            {/* Welcome state */}
+            {messages.length === 0 && !conversationTitle && (
               <div className="mt-20">
                 <h1 className="bg-gradient-to-r from-[#4285f4] via-[#9b72cb] to-[#d96570] bg-clip-text text-5xl font-semibold text-transparent md:text-6xl">
                   Hello, {user.firstName}
