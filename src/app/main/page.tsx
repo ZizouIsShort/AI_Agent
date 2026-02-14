@@ -7,6 +7,12 @@ import { useRouter } from "next/navigation";
 type Message = {
   role: "user" | "assistant";
   content: string;
+  source?: string;
+};
+
+type SidebarConversation = {
+  id: string;
+  title: string;
 };
 
 export default function MainPage() {
@@ -19,6 +25,10 @@ export default function MainPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const [sidebarConversations, setSidebarConversations] = useState<
+    SidebarConversation[]
+  >([]);
+
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -30,6 +40,7 @@ export default function MainPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  // Fetch sidebar conversations
   useEffect(() => {
     if (!user?.id) return;
 
@@ -41,7 +52,10 @@ export default function MainPage() {
       });
 
       const data = await res.json();
-      console.log(data);
+
+      if (res.ok && data.sbarWork) {
+        setSidebarConversations(data.sbarWork);
+      }
     };
 
     fetchSidebar();
@@ -55,7 +69,6 @@ export default function MainPage() {
     );
 
   if (!user) return null;
-  const final_id = user?.id;
 
   async function send_convo() {
     if (!query.trim() || loading) return;
@@ -81,12 +94,10 @@ export default function MainPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // First message → set conversation id
         if (!convo_id && data.convor_id) {
           setConvoId(data.convor_id);
         }
 
-        // First message → set title
         if (!conversationTitle && data.title) {
           setConversationTitle(data.title);
         }
@@ -95,7 +106,11 @@ export default function MainPage() {
 
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: assistantText },
+          {
+            role: "assistant",
+            content: assistantText,
+            source: data.source ?? undefined,
+          },
         ]);
       } else {
         setMessages((prev) => [
@@ -117,12 +132,31 @@ export default function MainPage() {
     setConvoId("");
     setConversationTitle("");
     setMessages([]);
+    window.location.reload();
+  }
+
+  async function loadConversation(conversation: SidebarConversation) {
+    setConvoId(conversation.id);
+    setConversationTitle(conversation.title);
+
+    const res = await fetch("/api/loadConversation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversationId: conversation.id }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.messages) {
+      setMessages(data.messages);
+    }
   }
 
   return (
     <div className="flex h-screen w-full bg-[#131314] text-[#e3e3e3] selection:bg-[#3d4451]">
       {/* Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col border-r border-[#1e1f20] bg-[#0f0f10]">
+      {/* Sidebar */}
+      <aside className="flex h-screen w-64 flex-shrink-0 flex-col border-r border-[#1e1f20] bg-[#0f0f10]">
         <div className="p-4">
           <button
             className="w-full rounded-lg bg-[#1e1f20] py-2 text-sm hover:bg-[#28292a] transition-colors"
@@ -131,13 +165,28 @@ export default function MainPage() {
             + New Chat
           </button>
         </div>
+
+        <div className="flex-1 overflow-y-auto px-2 space-y-2 pb-4">
+          {sidebarConversations.length === 0 && (
+            <p className="px-3 text-xs text-[#8e918f]">No conversations yet</p>
+          )}
+
+          {sidebarConversations.map((conversation) => (
+            <div
+              key={conversation.id}
+              onClick={() => loadConversation(conversation)}
+              className="cursor-pointer rounded-md px-3 py-2 text-sm text-[#c4c7c5] hover:bg-[#1e1f20] truncate transition-colors"
+            >
+              {conversation.title}
+            </div>
+          ))}
+        </div>
       </aside>
 
       {/* Main Chat Area */}
       <div className="flex flex-1 flex-col">
         <main className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="mx-auto max-w-3xl px-4 py-12 md:px-6">
-            {/* Title (only show if exists) */}
             {conversationTitle && (
               <div className="mb-8 text-center">
                 <h1 className="text-2xl font-semibold text-[#e3e3e3]">
@@ -147,7 +196,6 @@ export default function MainPage() {
               </div>
             )}
 
-            {/* Welcome state */}
             {messages.length === 0 && !conversationTitle && (
               <div className="mt-20">
                 <h1 className="bg-gradient-to-r from-[#4285f4] via-[#9b72cb] to-[#d96570] bg-clip-text text-5xl font-semibold text-transparent md:text-6xl">
@@ -177,7 +225,7 @@ export default function MainPage() {
                     {msg.role === "user" ? "Y" : "G"}
                   </div>
 
-                  <div className="max-w-[85%]">
+                  <div className="max-w-[85%] flex flex-col">
                     <div
                       className={`rounded-2xl px-5 py-3 text-[15px] leading-relaxed ${
                         msg.role === "user"
@@ -187,6 +235,14 @@ export default function MainPage() {
                     >
                       {msg.content}
                     </div>
+
+                    {/* Tool Source Box */}
+                    {msg.role === "assistant" && msg.source && (
+                      <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#1e1f20] px-3 py-2 text-xs text-[#c4c7c5] ring-1 ring-[#37393b] w-fit">
+                        <span className="h-2 w-2 rounded-full bg-[#4285f4]" />
+                        <span>{msg.source}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

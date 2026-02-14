@@ -141,10 +141,31 @@ export async function POST(request: Request) {
           convor_id: convo_id,
           response: answer,
           title: title,
+          source: "CN PDF 2025",
         });
       } else {
+        console.log("not using the tool");
+        const generated = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: `${query}`,
+        });
+        const noContext = generated.candidates?.[0]?.content?.parts?.[0]?.text;
+        console.log(noContext);
+        const role_user = "user";
+        const first_message_user = await db.execute(
+          sql`INSERT INTO ${messages} (conversation_id, role, content, created_at) VALUES (${convo_id}, ${role_user}, ${query}, ${now}) RETURNING *`,
+        );
+        console.log(first_message_user);
+        const role_llm = "assisstant";
+        const first_message_llm = await db.execute(
+          sql`INSERT INTO ${messages} (conversation_id ,role, content, created_at) VALUES (${convo_id}, ${role_llm}, ${noContext}, ${now}) RETURNING *`,
+        );
+        console.log(first_message_llm);
         return NextResponse.json({
-          message: "No info in my tool",
+          message: "first_convo with no context added and tool used",
+          convor_id: convo_id,
+          response: noContext,
+          title: title,
         });
       }
     } else {
@@ -274,10 +295,49 @@ export async function POST(request: Request) {
           message: "the convo continues",
           convor_id: convo_id,
           response: answer,
+          source: "CN PDF 2025",
         });
       } else {
+        const toolResponse = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: `
+          You are an AI assistant answering questions and we also give you a conversation history
+
+          User question:
+          "${query}"
+
+          Conversation history:
+          "${formatted_history}"
+
+          Instructions:
+          - Answer the question in less than 10,000 words.
+          - Be clear, concise, and accurate.
+
+          Answer:
+          `,
+        });
+        const answer = toolResponse.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (!answer) {
+          throw new Error("No answer returned by model");
+        }
+        console.log(answer);
+        console.log("That was the answer\n");
+        const role_user = "user";
+        const next_message_user = await db.execute(
+          sql`INSERT INTO ${messages} (conversation_id, role, content, created_at) VALUES (${convo_id}, ${role_user}, ${query}, ${now}) RETURNING *`,
+        );
+        console.log(next_message_user);
+
+        const role_llm = "assistant";
+        const next_message_llm = await db.execute(
+          sql`INSERT INTO ${messages} (conversation_id ,role, content, created_at) VALUES (${convo_id}, ${role_llm}, ${answer}, ${now}) RETURNING *`,
+        );
+        console.log(next_message_llm);
         return NextResponse.json({
-          message: "No info in my tool",
+          message: "the convo with no tool usage continues",
+          convor_id: convo_id,
+          response: answer,
         });
       }
     }
