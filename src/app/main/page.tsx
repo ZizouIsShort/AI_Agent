@@ -30,6 +30,23 @@ export default function MainPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchSidebar = async () => {
+      const res = await fetch("/api/sidebar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id }),
+      });
+
+      const data = await res.json();
+      console.log(data);
+    };
+
+    fetchSidebar();
+  }, [user?.id]);
+
   if (!isLoaded)
     return (
       <div className="flex h-screen items-center justify-center bg-[#131314]">
@@ -38,6 +55,7 @@ export default function MainPage() {
     );
 
   if (!user) return null;
+  const final_id = user?.id;
 
   async function send_convo() {
     if (!query.trim() || loading) return;
