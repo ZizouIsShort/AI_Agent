@@ -40,7 +40,6 @@ export default function MainPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // Fetch sidebar conversations
   useEffect(() => {
     if (!user?.id) return;
 
@@ -155,8 +154,7 @@ export default function MainPage() {
   return (
     <div className="flex h-screen w-full bg-[#131314] text-[#e3e3e3] selection:bg-[#3d4451]">
       {/* Sidebar */}
-      {/* Sidebar */}
-      <aside className="flex h-screen w-64 flex-shrink-0 flex-col border-r border-[#1e1f20] bg-[#0f0f10]">
+      <aside className="hidden md:flex h-screen w-64 flex-shrink-0 flex-col border-r border-[#1e1f20] bg-[#0f0f10]">
         <div className="p-4">
           <button
             className="w-full rounded-lg bg-[#1e1f20] py-2 text-sm hover:bg-[#28292a] transition-colors"
@@ -185,11 +183,11 @@ export default function MainPage() {
 
       {/* Main Chat Area */}
       <div className="flex flex-1 flex-col">
-        <main className="flex-1 overflow-y-auto custom-scrollbar">
-          <div className="mx-auto max-w-3xl px-4 py-12 md:px-6">
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto w-full max-w-3xl px-4 py-8 md:py-12 md:px-6">
             {conversationTitle && (
-              <div className="mb-8 text-center">
-                <h1 className="text-2xl font-semibold text-[#e3e3e3]">
+              <div className="mb-6 md:mb-8 text-center">
+                <h1 className="text-xl md:text-2xl font-semibold text-[#e3e3e3]">
                   {conversationTitle}
                 </h1>
                 <div className="mt-2 h-[1px] bg-[#1e1f20]" />
@@ -197,26 +195,26 @@ export default function MainPage() {
             )}
 
             {messages.length === 0 && !conversationTitle && (
-              <div className="mt-20">
-                <h1 className="bg-gradient-to-r from-[#4285f4] via-[#9b72cb] to-[#d96570] bg-clip-text text-5xl font-semibold text-transparent md:text-6xl">
+              <div className="mt-16 md:mt-20">
+                <h1 className="bg-gradient-to-r from-[#4285f4] via-[#9b72cb] to-[#d96570] bg-clip-text text-4xl md:text-6xl font-semibold text-transparent">
                   Hello, {user.firstName}
                 </h1>
-                <h2 className="mt-2 text-4xl font-medium text-[#444746] md:text-5xl">
+                <h2 className="mt-2 text-2xl md:text-5xl font-medium text-[#444746]">
                   How can I help you today?
                 </h2>
               </div>
             )}
 
-            <div className="space-y-10">
+            <div className="space-y-8 md:space-y-10">
               {messages.map((msg, index) => (
                 <div
                   key={index}
-                  className={`flex gap-4 ${
+                  className={`flex gap-3 md:gap-4 ${
                     msg.role === "user" ? "flex-row-reverse" : "flex-row"
                   }`}
                 >
                   <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                    className={`flex h-8 w-8 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                       msg.role === "user"
                         ? "bg-[#3d4451]"
                         : "bg-gradient-to-tr from-[#4285f4] to-[#9b72cb]"
@@ -225,9 +223,9 @@ export default function MainPage() {
                     {msg.role === "user" ? "Y" : "G"}
                   </div>
 
-                  <div className="max-w-[85%] flex flex-col">
+                  <div className="max-w-[90%] md:max-w-[75%] flex flex-col">
                     <div
-                      className={`rounded-2xl px-5 py-3 text-[15px] leading-relaxed ${
+                      className={`rounded-2xl px-4 py-2.5 text-[14px] md:text-[15px] leading-relaxed ${
                         msg.role === "user"
                           ? "bg-[#1e1f20] ring-1 ring-[#37393b]"
                           : "bg-transparent"
@@ -236,9 +234,8 @@ export default function MainPage() {
                       {msg.content}
                     </div>
 
-                    {/* Tool Source Box */}
                     {msg.role === "assistant" && msg.source && (
-                      <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#1e1f20] px-3 py-2 text-xs text-[#c4c7c5] ring-1 ring-[#37393b] w-fit">
+                      <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-[#1e1f20] px-3 py-2 text-[11px] md:text-xs text-[#c4c7c5] ring-1 ring-[#37393b] w-fit">
                         <span className="h-2 w-2 rounded-full bg-[#4285f4]" />
                         <span>{msg.source}</span>
                       </div>
@@ -248,26 +245,26 @@ export default function MainPage() {
               ))}
 
               {loading && (
-                <div className="flex gap-4 animate-pulse">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-[#4285f4] to-[#9b72cb] opacity-50" />
-                  <div className="h-3 w-40 rounded bg-[#1e1f20]" />
+                <div className="flex gap-3 md:gap-4 animate-pulse">
+                  <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-gradient-to-tr from-[#4285f4] to-[#9b72cb] opacity-50" />
+                  <div className="h-3 w-32 rounded bg-[#1e1f20]" />
                 </div>
               )}
             </div>
 
-            <div ref={bottomRef} className="h-32" />
+            <div ref={bottomRef} className="h-24 md:h-32" />
           </div>
         </main>
 
         {/* Input */}
-        <footer className="w-full bg-[#131314] px-4 pb-6 pt-2 border-t border-[#1e1f20]">
+        <footer className="w-full bg-[#131314] px-3 md:px-4 pb-4 md:pb-6 pt-2 border-t border-[#1e1f20]">
           <div className="mx-auto max-w-3xl">
-            <div className="flex items-center rounded-[32px] bg-[#1e1f20] py-1.5 pl-6 pr-2 hover:bg-[#28292a]">
+            <div className="flex items-center rounded-[28px] bg-[#1e1f20] py-1.5 pl-4 pr-2 hover:bg-[#28292a]">
               <input
                 type="text"
                 value={query}
                 placeholder="Enter a prompt here"
-                className="flex-1 bg-transparent py-3 text-[16px] outline-none"
+                className="flex-1 bg-transparent py-3 text-[15px] md:text-[16px] outline-none"
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") send_convo();
@@ -276,7 +273,7 @@ export default function MainPage() {
               <button
                 onClick={send_convo}
                 disabled={loading || !query.trim()}
-                className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-[#37393b] disabled:opacity-20"
+                className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-full hover:bg-[#37393b] disabled:opacity-20"
               >
                 ↑
               </button>

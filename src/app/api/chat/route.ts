@@ -3,7 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/index";
-import { usersTable, conversations, messages } from "@/db/schema";
+import { conversations, messages } from "@/db/schema";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_API_KEY!,
