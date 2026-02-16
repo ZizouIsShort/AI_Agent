@@ -29,6 +29,8 @@ export default function MainPage() {
     SidebarConversation[]
   >([]);
 
+  const [sidebarOpen, setSidebarOpen] = useState(false); // ✅ NEW
+
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -131,12 +133,13 @@ export default function MainPage() {
     setConvoId("");
     setConversationTitle("");
     setMessages([]);
-    window.location.reload();
+    setSidebarOpen(false); //
   }
 
   async function loadConversation(conversation: SidebarConversation) {
     setConvoId(conversation.id);
     setConversationTitle(conversation.title);
+    setSidebarOpen(false); //
 
     const res = await fetch("/api/loadConversation", {
       method: "POST",
@@ -153,8 +156,24 @@ export default function MainPage() {
 
   return (
     <div className="flex h-screen w-full bg-[#131314] text-[#e3e3e3] selection:bg-[#3d4451]">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="hidden md:flex h-screen w-64 flex-shrink-0 flex-col border-r border-[#1e1f20] bg-[#0f0f10]">
+      <aside
+        className={`
+          fixed md:static z-40 h-screen w-64 flex-shrink-0
+          flex flex-col border-r border-[#1e1f20] bg-[#0f0f10]
+          transform transition-transform duration-300
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0
+        `}
+      >
         <div className="p-4">
           <button
             className="w-full rounded-lg bg-[#1e1f20] py-2 text-sm hover:bg-[#28292a] transition-colors"
@@ -181,13 +200,26 @@ export default function MainPage() {
         </div>
       </aside>
 
-      {/* Main Chat Area */}
+      {/* Main Area */}
       <div className="flex flex-1 flex-col">
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-[#1e1f20]">
+          <button onClick={() => setSidebarOpen(true)} className="text-xl">
+            ☰
+          </button>
+
+          <span className="text-sm font-medium truncate max-w-[200px]">
+            {conversationTitle || "Ziyan AI"}
+          </span>
+
+          <div className="w-6" />
+        </div>
+
         <main className="flex-1 overflow-y-auto">
           <div className="mx-auto w-full max-w-3xl px-4 py-8 md:py-12 md:px-6">
             {conversationTitle && (
               <div className="mb-6 md:mb-8 text-center">
-                <h1 className="text-xl md:text-2xl font-semibold text-[#e3e3e3]">
+                <h1 className="text-xl md:text-2xl font-semibold">
                   {conversationTitle}
                 </h1>
                 <div className="mt-2 h-[1px] bg-[#1e1f20]" />
