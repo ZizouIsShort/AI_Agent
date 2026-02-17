@@ -71,6 +71,29 @@ export default function MainPage() {
 
   if (!user) return null;
 
+  async function send_web_search() {
+    if (!query.trim() || loading) return;
+
+    const currentQuery = query;
+
+    setMessages((prev) => [...prev, { role: "user", content: currentQuery }]);
+
+    setQuery("");
+    setLoading(true);
+    const response = await fetch("/api/web-search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: currentQuery,
+        conversationId: convo_id,
+        user_id: user?.id,
+      }),
+    });
+    if (response.ok) {
+      console.log(response);
+    }
+  }
+
   async function send_convo() {
     if (!query.trim() || loading) return;
 
@@ -308,6 +331,13 @@ export default function MainPage() {
                 className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-full hover:bg-[#37393b] disabled:opacity-20"
               >
                 ↑
+              </button>
+              <button
+                onClick={send_web_search}
+                disabled={loading || !query.trim()}
+                className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-full hover:bg-[#37393b] disabled:opacity-20"
+              >
+                🌐
               </button>
             </div>
           </div>
