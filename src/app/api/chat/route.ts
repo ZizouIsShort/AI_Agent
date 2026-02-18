@@ -131,9 +131,9 @@ export async function POST(request: Request) {
           sql`INSERT INTO ${messages} (conversation_id, role, content, created_at) VALUES (${convo_id}, ${role_user}, ${query}, ${now}) RETURNING *`,
         );
         console.log(first_message_user);
-        const role_llm = "assisstant";
+        const role_llm = "assistant";
         const first_message_llm = await db.execute(
-          sql`INSERT INTO ${messages} (conversation_id ,role, content, created_at) VALUES (${convo_id}, ${role_llm}, ${answer}, ${now}) RETURNING *`,
+          sql`INSERT INTO ${messages} (conversation_id ,role, content, created_at, source) VALUES (${convo_id}, ${role_llm}, ${answer}, ${now}, ${"CN PDF 2025"}) RETURNING *`,
         );
         console.log(first_message_llm);
         return NextResponse.json({
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
           sql`INSERT INTO ${messages} (conversation_id, role, content, created_at) VALUES (${convo_id}, ${role_user}, ${query}, ${now}) RETURNING *`,
         );
         console.log(first_message_user);
-        const role_llm = "assisstant";
+        const role_llm = "assistant";
         const first_message_llm = await db.execute(
           sql`INSERT INTO ${messages} (conversation_id ,role, content, created_at) VALUES (${convo_id}, ${role_llm}, ${noContext}, ${now}) RETURNING *`,
         );
@@ -166,6 +166,7 @@ export async function POST(request: Request) {
           convor_id: convo_id,
           response: noContext,
           title: title,
+          source: "",
         });
       }
     } else {
@@ -179,7 +180,6 @@ export async function POST(request: Request) {
         content: string;
       }[];
 
-      // Format for LLM
       const formatted_history = history
         .map((msg) => `${msg.role.toUpperCase()}: ${msg.content}`)
         .join("\n");
@@ -288,7 +288,7 @@ export async function POST(request: Request) {
 
         const role_llm = "assistant";
         const next_message_llm = await db.execute(
-          sql`INSERT INTO ${messages} (conversation_id ,role, content, created_at) VALUES (${convo_id}, ${role_llm}, ${answer}, ${now}) RETURNING *`,
+          sql`INSERT INTO ${messages} (conversation_id ,role, content, created_at, source) VALUES (${convo_id}, ${role_llm}, ${answer}, ${now}, ${"CN PDF 2025"}) RETURNING *`,
         );
         console.log(next_message_llm);
         return NextResponse.json({
@@ -338,6 +338,7 @@ export async function POST(request: Request) {
           message: "the convo with no tool usage continues",
           convor_id: convo_id,
           response: answer,
+          source: "",
         });
       }
     }

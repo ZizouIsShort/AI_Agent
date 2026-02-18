@@ -19,6 +19,7 @@ export const messages = pgTable("messages", {
   id: uuid("id").defaultRandom().primaryKey(),
   conversation_id: uuid("conversation_id").references(() => conversations.id),
   role: varchar("role", { length: 1000 }).notNull(),
+  source: varchar("source", { length: 1000 }),
   content: varchar("content", { length: 100000 }).notNull(),
   created_at: varchar("created_at", { length: 1000 }).notNull(),
 });
