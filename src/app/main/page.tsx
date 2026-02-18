@@ -215,17 +215,19 @@ export default function MainPage() {
     <div className="flex h-screen w-full bg-[#131314] text-[#e3e3e3]">
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       <aside
-        className={`fixed md:static z-40 h-screen w-64 flex flex-col
-        border-r border-[#1e1f20] bg-[#0f0f10]
-        transform transition-transform duration-300
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-        md:translate-x-0`}
+        className={`
+          fixed md:static z-50 h-screen w-64 flex flex-col
+          border-r border-[#1e1f20] bg-[#0f0f10]
+          transform transition-transform duration-300
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0
+        `}
       >
         <div className="p-4">
           <button
@@ -252,6 +254,22 @@ export default function MainPage() {
       </aside>
 
       <div className="flex flex-1 flex-col">
+        {/*  MOBILE HEADER FIX */}
+        <div className="md:hidden sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-[#131314] border-b border-[#1e1f20]">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="text-2xl text-[#e3e3e3]"
+          >
+            ☰
+          </button>
+
+          <span className="text-sm font-medium truncate max-w-[200px]">
+            {conversationTitle || "Really Slow AI"}
+          </span>
+
+          <div className="w-6" />
+        </div>
+
         <main className="flex-1 overflow-y-auto">
           <div className="mx-auto w-full max-w-3xl px-4 py-12">
             {/* Greeting */}
